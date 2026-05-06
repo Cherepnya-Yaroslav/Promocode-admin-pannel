@@ -1,0 +1,22 @@
+{
+  "name": "promo-code-manager",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@10.7.1",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "build": "pnpm --filter @promo-code-manager/shared build && pnpm --filter @promo-code-manager/api build && pnpm --filter @promo-code-manager/web build",
+    "typecheck": "pnpm --filter @promo-code-manager/shared typecheck && pnpm --filter @promo-code-manager/api typecheck && pnpm --filter @promo-code-manager/web typecheck",
+    "lint": "pnpm --filter @promo-code-manager/shared lint && pnpm --filter @promo-code-manager/api lint && pnpm --filter @promo-code-manager/web lint",
+    "test": "pnpm --filter @promo-code-manager/shared test && pnpm --filter @promo-code-manager/api test && pnpm --filter @promo-code-manager/web test",
+    "dev": "concurrently -n api,web -c blue,green \"pnpm --filter @promo-code-manager/api start:dev\" \"pnpm --filter @promo-code-manager/web dev -- --host 0.0.0.0 --port 5173\"",
+    "seed": "docker compose run --rm api pnpm --filter @promo-code-manager/api seed",
+    "compose:up": "docker compose up --build",
+    "compose:down": "docker compose down -v"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}

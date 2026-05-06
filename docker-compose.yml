@@ -1,0 +1,68 @@
+services:
+  mongo:
+    image: mongo:7
+    container_name: promo-mongo
+    restart: unless-stopped
+    ports:
+      - "${MONGO_PORT:-27017}:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: "${MONGO_INITDB_ROOT_USERNAME:-promocode}"
+      MONGO_INITDB_ROOT_PASSWORD: "${MONGO_INITDB_ROOT_PASSWORD:-promocode}"
+    volumes:
+      - mongo_data:/data/db
+
+  clickhouse:
+    image: clickhouse/clickhouse-server:24.8
+    container_name: promo-clickhouse
+    restart: unless-stopped
+    ports:
+      - "${CLICKHOUSE_HTTP_PORT:-8123}:8123"
+      - "${CLICKHOUSE_NATIVE_PORT:-9000}:9000"
+    environment:
+      CLICKHOUSE_DB: "${CLICKHOUSE_DB:-promocode_manager}"
+      CLICKHOUSE_USER: "${CLICKHOUSE_USER:-promocode}"
+      CLICKHOUSE_PASSWORD: "${CLICKHOUSE_PASSWORD:-promocode}"
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+
+  redis:
+    image: redis:7-alpine
+    container_name: promo-redis
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: promo-api
+    restart: unless-stopped
+    depends_on:
+      - mongo
+      - clickhouse
+      - redis
+    env_file:
+      - ./apps/api/.env.example
+    ports:
+      - "${API_PORT:-3000}:3000"
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    container_name: promo-web
+    restart: unless-stopped
+    depends_on:
+      - api
+    env_file:
+      - ./apps/web/.env.example
+    ports:
+      - "${WEB_PORT:-5173}:5173"
+
+volumes:
+  mongo_data:
+  clickhouse_data:
+  redis_data:
